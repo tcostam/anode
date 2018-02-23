@@ -41,6 +41,7 @@ private:
   String _pass;
   String sendCommand(String command, const int timeout, boolean debug);
   bool startServer();
+  bool listenToEvents();
 };
 
 #endif

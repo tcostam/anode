@@ -49,6 +49,8 @@ ANode::ANode(HardwareSerial &espSerial, HardwareSerial &debugSerial, String send
   startServer();
 }
 
+// private methods
+
 bool ANode::startServer() {
   // rst
   sendCommand("AT+RST", 2000, DEBUG);
@@ -64,6 +66,36 @@ bool ANode::startServer() {
   sendCommand("AT+CIPSERVER=1,80", 1000, DEBUG);
   // if successful, return true
   return true;
+}
+
+bool ANode::listenToEvents() {
+  if (_espSerial->available())
+  {
+    if (_espSerial->find((char*)"+IPD,"))
+    {
+      delay(300);
+      int connectionId = _espSerial->read() - 48;
+
+      String webpage = "<head><meta http-equiv=""refresh"" content=""3"">";
+      webpage += "</head><h1><u>ESP8266 - Web Server</u></h1><h2>Porta";
+      webpage += "Digital 8: </h2>";
+      webpage += "<h2>Porta Digital 9: ";
+      webpage += "</h2>";
+
+      String cipSend = "AT+CIPSEND=";
+      cipSend += connectionId;
+      cipSend += ",";
+      cipSend += webpage.length();
+
+      sendCommand(cipSend, 1000, DEBUG);
+      sendCommand(webpage, 1000, DEBUG);
+
+      String closeCommand = "AT+CIPCLOSE=";
+      closeCommand += connectionId; // append connection id
+
+      sendCommand(closeCommand, 3000, DEBUG);
+    }
+  }
 }
 
 String ANode::sendCommand(String command, const int timeout, boolean debug)
@@ -87,6 +119,8 @@ String ANode::sendCommand(String command, const int timeout, boolean debug)
   }
   return response;
 }
+
+// public commands
 
 bool ANode::sendEvent(Event &event, bool debug)
 {

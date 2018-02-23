@@ -6,6 +6,10 @@
 Event::Event(String timestamp, String source, String name, String data)
 {
   // constructor
+  _timestamp = timestamp;
+  _source = source;
+  _name = name;
+  _data = data;
 }
 
 String Event::getTimestamp()

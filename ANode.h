@@ -28,7 +28,8 @@ class Event
 class ANode
 {
 public:
-  ANode(HardwareSerial &espSerial, HardwareSerial &debugSerial, String sendChannel, String gatewayIp, String gatewayPort);
+  ANode(HardwareSerial &espSerial, HardwareSerial &debugSerial, String sendChannel, String gatewayIp, String gatewayPort,
+        String ssid, String port);
   bool sendEvent(Event &event, bool debug);
 private:
   HardwareSerial *_espSerial; // esp8266 serial port
@@ -38,7 +39,8 @@ private:
   String _gatewayPort;
   String _ssid;
   String _pass;
-  String sendData(String command, const int timeout, boolean debug);
+  String sendCommand(String command, const int timeout, boolean debug);
+  bool startServer();
 };
 
 #endif

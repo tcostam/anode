@@ -28,7 +28,8 @@ String Event::getData()
   return _data;
 }
 
-ANode::ANode(HardwareSerial &espSerial, HardwareSerial &debugSerial, String sendChannel, String gatewayIp, String gatewayPort)
+ANode::ANode(HardwareSerial &espSerial, HardwareSerial &debugSerial, String sendChannel, String gatewayIp, String gatewayPort,
+            String ssid, String pass)
 {
   // constructor
   // espSerial is the serial port the esp8266 is connected to.
@@ -38,30 +39,36 @@ ANode::ANode(HardwareSerial &espSerial, HardwareSerial &debugSerial, String send
   _gatewayIp = gatewayIp;
   _gatewayPort = gatewayPort;
 
+  _ssid = ssid;
+  _pass = pass;
+
   // init board
   _espSerial->begin(115200);
   _debugSerial->begin(115200);
 
-  // rst
-  sendData("AT+RST", 2000, DEBUG);
-  // Conecta a rede wireless
-  sendData("AT+CWJAP=\"" + _ssid + "\",\"" + _pass + "\"", 2000, DEBUG);
-  delay(10000);
-  sendData("AT+CWMODE=1", 1000, DEBUG);
-  // Mostra o endereco IP
-  sendData("AT+CIFSR", 1000, DEBUG);
-  // Configura para multiplas conexoes
-  sendData("AT+CIPMUX=1", 1000, DEBUG);
-  // Inicia o web server na porta 80
-  sendData("AT+CIPSERVER=1,80", 1000, DEBUG);
-
-  //  AT+CIPMUX?
-  sendData("AT+CIPMUX?", 1000, DEBUG);
+  startServer();
 }
 
-String ANode::sendData(String command, const int timeout, boolean debug)
+bool ANode::startServer() {
+  // rst
+  sendCommand("AT+RST", 2000, DEBUG);
+  // Connect to wireless network
+  sendCommand("AT+CWJAP=\"" + _ssid + "\",\"" + _pass + "\"", 2000, DEBUG);
+  delay(10000);
+  sendCommand("AT+CWMODE=1", 1000, DEBUG);
+  // Shows IP Address
+  sendCommand("AT+CIFSR", 1000, DEBUG);
+  // Configure to multiple connections
+  sendCommand("AT+CIPMUX=1", 1000, DEBUG);
+  // Start web server at port 80
+  sendCommand("AT+CIPSERVER=1,80", 1000, DEBUG);
+  // if successful, return true
+  return true;
+}
+
+String ANode::sendCommand(String command, const int timeout, boolean debug)
 {
-  // Sending of AT commands to the module
+  // Send AT commands to the module
   String response = "";
   _espSerial->println(command);
   long int time = millis();

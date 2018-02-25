@@ -13,6 +13,7 @@
 class Event
 {
   public:
+    Event();
     Event(String timestamp, String source, String name, String data);
     String getTimestamp();
     String getSource();
@@ -28,9 +29,11 @@ class Event
 class ANode
 {
 public:
+  ANode();
   ANode(HardwareSerial &espSerial, HardwareSerial &debugSerial, String sendChannel, String gatewayIp, String gatewayPort,
         String ssid, String port);
   bool sendEvent(Event &event, bool debug);
+  void listenToEvent();
 private:
   HardwareSerial *_espSerial; // esp8266 serial port
   HardwareSerial *_debugSerial; // debug serial port
@@ -39,9 +42,8 @@ private:
   String _gatewayPort;
   String _ssid;
   String _pass;
-  String sendCommand(String command, const int timeout, boolean debug);
-  bool startServer();
-  bool listenToEvents();
+  void sendCommand(String command, const int timeout, boolean debug);
+  void startServer();
 };
 
 #endif

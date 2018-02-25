@@ -3,6 +3,9 @@
 
 #define DEBUG true
 
+// empty constructor
+Event::Event() { }
+
 Event::Event(String timestamp, String source, String name, String data)
 {
   // constructor
@@ -32,6 +35,9 @@ String Event::getData()
   return _data;
 }
 
+// empty constructor
+ANode::ANode() { }
+
 ANode::ANode(HardwareSerial &espSerial, HardwareSerial &debugSerial, String sendChannel, String gatewayIp, String gatewayPort,
             String ssid, String pass)
 {
@@ -46,16 +52,13 @@ ANode::ANode(HardwareSerial &espSerial, HardwareSerial &debugSerial, String send
   _ssid = ssid;
   _pass = pass;
 
-  // init board
-  _espSerial->begin(115200);
-  _debugSerial->begin(115200);
-
   startServer();
 }
 
 // private methods
 
-bool ANode::startServer() {
+void ANode::startServer() {
+  _debugSerial->println("STARTING...");
   // rst
   sendCommand("AT+RST", 2000, DEBUG);
   // Connect to wireless network
@@ -72,37 +75,40 @@ bool ANode::startServer() {
   return true;
 }
 
-bool ANode::listenToEvents() {
+void ANode::listenToEvent() {
   if (_espSerial->available())
   {
     if (_espSerial->find((char*)"+IPD,"))
     {
       delay(300);
       int connectionId = _espSerial->read() - 48;
+      int connection = _espSerial->read();
+      _debugSerial->println(connection);
 
-      String webpage = "<head><meta http-equiv=""refresh"" content=""3"">";
-      webpage += "</head><h1><u>ESP8266 - Web Server</u></h1><h2>Porta";
-      webpage += "Digital 8: </h2>";
-      webpage += "<h2>Porta Digital 9: ";
-      webpage += "</h2>";
+      // String webpage = "<head><meta http-equiv=""refresh"" content=""3"">";
+      // webpage += "</head><h1><u>ESP8266 - Web Server</u></h1><h2>Porta";
+      // webpage += "Digital 8: </h2>";
+      // webpage += "<h2>Porta Digital 9: ";
+      // webpage += "</h2>";
 
-      String cipSend = "AT+CIPSEND=";
-      cipSend += connectionId;
-      cipSend += ",";
-      cipSend += webpage.length();
+      // String cipSend = "AT+CIPSEND=";
+      // cipSend += connectionId;
+      // cipSend += ",";
+      // cipSend += webpage.length();
 
-      sendCommand(cipSend, 1000, DEBUG);
-      sendCommand(webpage, 1000, DEBUG);
+      // sendCommand(cipSend, 1000, DEBUG);
+      // sendCommand(webpage, 1000, DEBUG);
 
       String closeCommand = "AT+CIPCLOSE=";
       closeCommand += connectionId; // append connection id
-
       sendCommand(closeCommand, 3000, DEBUG);
     }
   }
+
+  return false;
 }
 
-String ANode::sendCommand(String command, const int timeout, boolean debug)
+void ANode::sendCommand(String command, const int timeout, boolean debug)
 {
   // Send AT commands to the module
   String response = "";
@@ -121,16 +127,16 @@ String ANode::sendCommand(String command, const int timeout, boolean debug)
   {
     _debugSerial->print(response);
   }
-  return response;
 }
 
 // public commands
 
 bool ANode::sendEvent(Event &event, bool debug)
 {
+  _debugSerial->println("before tcp connection"); //xxx
   // start a TCP connection.
   _espSerial->println("AT+CIPSTART=" + _sendChannel + ",\"TCP\",\"" + _gatewayIp + "\"," + _gatewayPort);
-
+  _debugSerial->println("after tcp connection"); //xxx
 
   if(_espSerial->find((char*)"OK") && debug && _debugSerial) { _debugSerial->println("TCP connection ready"); }
   delay(300);
